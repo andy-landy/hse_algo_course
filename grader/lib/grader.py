@@ -47,7 +47,7 @@ def get_result_and_error(test: Test, solve: 'Callable') -> 'Tuple[Any, str]':
             except TimeoutError:
                 continue
         else:
-            return None, 'Time limit exceeded'
+            return None, f'Time limit of {test.timeout_s} sec exceeded'
 
     finally:
         sys.stdout = old_stdout
@@ -79,8 +79,11 @@ def grade(part_id: str, part_id_to_gen_tests: 'Dict[str, Callable[[], List[Test]
 
 
 def main(part_id_to_gen_tests: 'Dict[str, Callable[[], List[Test]]]') -> 'NoReturn':
-    part_id, = sys.argv[1:]
+    part_id = os.getenv('partId')
+    # part_id, = sys.argv[2:3]  # grader V1
     
     score, feedback = grade(part_id, part_id_to_gen_tests)
-
-    print(json.dumps({'fractionalScore': score, 'feedback': feedback}))
+    
+    result_str = json.dumps({'fractionalScore': score, 'feedback': feedback})
+    # print(result_str)  # grader V1
+    Path('/shared/feedback.json').write_text(result_str)
