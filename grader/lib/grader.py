@@ -5,23 +5,22 @@ import stat
 import sys
 from pathlib import Path
 
-from traceback_with_variables import activate_by_import
 from timeout_decorator.timeout_decorator import timeout, TimeoutError
 
-from test_cases import Test, part_id_to_gen_tests
+from lib.test_cases import Test
 
 
 class FeedbackError(Exception):
     pass
 
 
-def import_solve(dir_path: Path, name: str) -> 'Callable'
+def import_solve(dir_path: Path, name: str) -> 'Callable':
     py_files = list(dir_path.glob('*.py'))
     if len(py_files) != 1:
         raise FeedbackError(f'Please upload a .py file, e.g. called sample.py')
     
     temp_globals = {}
-    eval(py_files[0].read_text(), temp_globals)
+    exec(py_files[0].read_text(), temp_globals)
     if name not in temp_globals:
         raise FeedbackError(f'Uploaded file has no function called {name}')
 
@@ -29,12 +28,12 @@ def import_solve(dir_path: Path, name: str) -> 'Callable'
 
 
 def grade_one_test_and_get_error(test: Test, solve: 'Callable') -> str:
-    short_error = grade_one_test_and_get_shrot_error(test, solve)
+    short_error = grade_one_test_and_get_short_error(test, solve)
 
     if not short_error:
         return short_error
 
-    return f'{short_error} on test: {test.**kwargs}'
+    return f'{short_error} on test: {test.input_kwargs}'
 
 
 def get_result_and_error(test: Test, solve: 'Callable') -> 'Tuple[Any, str]':
@@ -60,34 +59,28 @@ def grade_one_test_and_get_short_error(test: Test, solve: 'Callable') -> str:
     return error or test.check_result(**test.input_kwargs, result=result)
     
 
-def grade(part_id) -> Tuple[float, str]:
+def grade(part_id: str, part_id_to_gen_tests: 'Dict[str, Callable[[], List[Test]]]') -> 'Tuple[float, str]':
     try:
-        solve = import_solve(Path("/shared/submission/"))
+        solve = import_solve(Path("/shared/submission/"), 'solve')
     except FeedbackError as e:
         return 0.0, str(e)
 
-    tests = part_id_to_gen_tests[part_id]
+    tests = part_id_to_gen_tests[part_id]()
 
     solved_score = 0.0
     total_score = sum(test.score for test in tests)
     for test in tests:
-        error = grade_one_test_and_get_error(test)
+        error = grade_one_test_and_get_error(test, solve)
         if error:
-            return solved_score, 'Some tests were failed, e.g.:\n' + error
+            return solved_score / total_score, 'Some tests were failed, e.g.:\n' + error
+        solved_score += test.score
 
     return 1.0, 'Great job! You passed all test cases'
 
 
-def main():
+def main(part_id_to_gen_tests: 'Dict[str, Callable[[], List[Test]]]') -> 'NoReturn':
     part_id, = sys.argv[1:]
     
-    score, feedback = grave(part_id)
+    score, feedback = grade(part_id, part_id_to_gen_tests)
 
     print(json.dumps({'fractionalScore': score, 'feedback': feedback}))
-
-
-if __name__ == '__main__':
-    main()
-
-
-
