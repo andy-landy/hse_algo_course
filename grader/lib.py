@@ -1,17 +1,37 @@
 import json
+import logging
 import os
 import shutil
 import stat
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from timeout_decorator.timeout_decorator import timeout, TimeoutError
 
-from lib.test_cases import Test
+
+logger = logging.getLogger(__name__)
+Kwargs = Dict
+
+
+@dataclass
+class Test:
+    input_kwargs: 'Dict[str, Any]'
+    timeout_s: float
+    check_result: 'Callable[[Dict[str, Any], Any], str]'
+    score: float
 
 
 class FeedbackError(Exception):
     pass
+
+
+def assert_answer(answer, input_kwargs, solve):
+    expected = solve(**input_kwargs)
+
+    if expected != solve:
+        logger.info(f'wrong answer (user a. != correct a.): {answer} != {expected}')
+        raise FeedbackError(f'wrong answer')
 
 
 def import_solve(dir_path: Path, name: str) -> 'Callable':
@@ -30,10 +50,7 @@ def import_solve(dir_path: Path, name: str) -> 'Callable':
 def grade_one_test_and_get_error(test: Test, solve: 'Callable') -> str:
     short_error = grade_one_test_and_get_short_error(test, solve)
 
-    if not short_error:
-        return short_error
-
-    return f'{short_error} on test: {test.input_kwargs}'
+    return short_error and '{short_error} on test: {test.input_kwargs}'
 
 
 def get_result_and_error(test: Test, solve: 'Callable') -> 'Tuple[Any, str]':
@@ -79,6 +96,8 @@ def grade(part_id: str, part_id_to_gen_tests: 'Dict[str, Callable[[], List[Test]
 
 
 def main(part_id_to_gen_tests: 'Dict[str, Callable[[], List[Test]]]') -> 'NoReturn':
+    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
+
     part_id = os.getenv('partId')
     # part_id, = sys.argv[2:3]  # grader V1
     
@@ -87,3 +106,4 @@ def main(part_id_to_gen_tests: 'Dict[str, Callable[[], List[Test]]]') -> 'NoRetu
     result_str = json.dumps({'fractionalScore': score, 'feedback': feedback})
     # print(result_str)  # grader V1
     Path('/shared/feedback.json').write_text(result_str)
+
