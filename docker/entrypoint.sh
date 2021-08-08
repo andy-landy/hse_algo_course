@@ -1,3 +1,8 @@
 #!/bin/bash
 source /docker/bashrc_patch
-python3 /grader/tool/grader.py $@
+
+# EDIT THIS IF NEEDED
+(
+    cd /problem
+    python3 ./main.py $@
+)

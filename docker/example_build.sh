@@ -1,1 +1,1 @@
-docker build -t hse -f docker/Dockerfile .
+docker build -t grader -f docker/Dockerfile .

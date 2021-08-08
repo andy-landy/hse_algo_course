@@ -7,7 +7,10 @@ RUN apt update && DEBIAN_FRONTEND="noninteractive" apt -y install \
     jq \
     python3-pip
 
-COPY grader/ /grader
+RUN mkdir /py_code
+
+COPY grader/ /py_code/grader
+COPY problem/ /py_code/problem
 
 COPY docker/ /docker
 RUN chmod +x /docker/entrypoint.sh

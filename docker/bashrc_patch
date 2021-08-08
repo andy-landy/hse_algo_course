@@ -4,8 +4,6 @@ IGNOREEOF=10
 
 alias tmux='ERM=xterm-256color tmux'
 alias ll='ls -aot'
-
 alias pygrep='grep -rsn --include=*py'
-alias ymlgrep='grep -rsn --include=*yml'
 
-export PYTHONPATH=$PYTHONPATH:/grader/
+export PYTHONPATH=$PYTHONPATH:/py_code:/py_code/problem
