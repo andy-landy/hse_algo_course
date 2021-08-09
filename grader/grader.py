@@ -9,6 +9,7 @@ from traceback_with_variables import format_exc
 from timeout_decorator.timeout_decorator import timeout, TimeoutError
 
 from grader.test import Test, Kwargs, CheckAnswer, Answer, Solve, ScoreRatioAndFeedback, CreateTests
+from grader.test_util import appr_ge
 
 
 logger = logging.getLogger(__name__)
@@ -57,18 +58,14 @@ def get_answer(test: Test, solve: Solve) -> Answer:
 
 def grade_one_test(test: Test, solve: Solve) -> ScoreRatioAndFeedback:
     try:
-        answer = get_answer(test, solve)
-
-        ratio, feedback = test.check_answer(
+        return test.check_answer(
             input_kwargs=test.input_kwargs,  # noqa
             checker_kwargs=test.checker_kwargs,  # noqa
-            answer=answer,  # noqa
+            answer=get_answer(test, solve)
         )  # noqa
 
     except FeedbackError as e:
         ratio, feedback = 0.0, str(e)
-
-    return ratio, f'{feedback} on test: {test.input_kwargs}'
 
 
 def grade(tests: List[Test]) -> ScoreRatioAndFeedback:
@@ -76,7 +73,7 @@ def grade(tests: List[Test]) -> ScoreRatioAndFeedback:
         solve = import_solve(Path("/shared/submission/"), 'solve')
         rfs = [grade_one_test(test, solve) for test in tests]
 
-        verdict = 'Good job! All answers are correct!' if all(r < 1.0 for r, _ in rfs) else 'Some tests failed.'
+        verdict = 'Good job! All answers are correct!' if appr_ge(min(r for r, _ in rfs), 1.0) else 'Some tests failed.'
 
         return (
             sum(r * c.score for (r, _), c in zip(rfs, tests)) / sum(c.score for c in tests),
@@ -97,6 +94,7 @@ def main(
     if create_tests:
         score, feedback = grade(create_tests())
     else:
+        logger.error('cannot find test "{os.getenv("partId")}" among: {list(part_id_to_create_tests.keys())}')
         score, feedback = 0, excuse_for_no_test
 
     Path('/shared/feedback.json').write_text(json.dumps({'fractionalScore': score, 'feedback': feedback}))  # prn for V1

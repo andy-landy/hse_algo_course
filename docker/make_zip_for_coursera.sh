@@ -1,10 +1,11 @@
 mkdir temp
-cp -r grader temp/grader
-cp -r docker temp/docker
+cp -r grader temp/
+cp -r docker temp/
+cp -r problem temp/
 cp docker/Dockerfile temp
 (
     cd temp
-    zip -r ../custom_grader.zip .
+    zip -r - .
 )
 rm -r temp
 

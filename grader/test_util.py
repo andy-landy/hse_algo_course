@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 def check_exact_answer(input_kwargs: Kwargs, checker_kwargs: Kwargs, answer: Answer) -> ScoreRatioAndFeedback:
     correct_answer = checker_kwargs['correct_answer']
+    hide_input = checker_kwargs.get('hide_input', False)
 
     if type(answer) != type(correct_answer):
         return 0.0, f'your answer has type {type(answer)}, but {type(correct_answer)} was expected'
@@ -18,8 +19,8 @@ def check_exact_answer(input_kwargs: Kwargs, checker_kwargs: Kwargs, answer: Ans
     if answer == correct_answer if not isinstance(answer, float) else isclose(answer, correct_answer):
         return 1.0, 'correct answer'
 
-    logger.info(f'wrong answer: correct = {correct_answer}, obtained = {answer}')
-    return 0.0, 'wrong answer'
+    logger.info(f'wrong answer {answer} ( != {correct_answer})')
+    return 0.0, 'wrong answer' + ('' if hide_input else f'on test {input_kwargs}')
 
 
 def simple_load_tests(path: Path, check_answer: CheckAnswer) -> List[Test]:
@@ -47,3 +48,8 @@ def simple_save_test_datas(path: Path, test_datas: Iterator[Dict[str, Any]]) -> 
         for data in test_datas:
             json.dump(fp=out, obj=data)
             out.write('\n')
+
+
+def appr_ge(lv: float, rv: float) -> bool:
+    return lv >= rv or isclose(lv, rv)
+

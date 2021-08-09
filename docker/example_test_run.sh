@@ -1,3 +1,4 @@
 mkdir -p shared
-cp grader/problems/lamps_solution.py shared/solution.py
-docker run -it --mount src=/abs/path/to/shared,dst=/shared/submission,type=bind hse qwe123
+rm -rf shared/*
+cp ../problems_git/problems/appr_tsp/appr_tsp.py shared/solution.py
+docker run -it --mount src=$(realpath ./submission/),dst=/shared/submission,type=bind -e partId=123 grader

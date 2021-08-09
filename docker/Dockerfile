@@ -16,6 +16,6 @@ COPY docker/ /docker
 RUN chmod +x /docker/entrypoint.sh
 RUN cat /docker/bashrc_patch >> /root/.bashrc
 
-RUN pip3 install -r /grader/requirements.txt
+RUN pip3 install -r /py_code/grader/requirements.txt
 
 ENTRYPOINT ["/docker/entrypoint.sh"]

@@ -3,6 +3,7 @@ source /docker/bashrc_patch
 
 # EDIT THIS IF NEEDED
 (
-    cd /problem
+    cd /py_code/problem
     python3 ./main.py $@
+    cat /shared/feedback.json
 )
