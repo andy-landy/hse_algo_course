@@ -50,7 +50,7 @@ def get_answer(test: Test, solve: Solve) -> Answer:
                 logger.info(f'solve raised an exception: {format_exc()}')
                 raise FeedbackError(f'Exception in solution')
         else:
-            raise FeedbackError('Time limit of {test.timeout_s} sec exceeded.')
+            raise FeedbackError(f'Time limit of {test.timeout_s} sec exceeded.')
 
     finally:
         sys.stdout = old_stdout
@@ -65,7 +65,7 @@ def grade_one_test(test: Test, solve: Solve) -> ScoreRatioAndFeedback:
         )  # noqa
 
     except FeedbackError as e:
-        ratio, feedback = 0.0, str(e)
+        return 0.0, str(e)
 
 
 def grade(tests: List[Test]) -> ScoreRatioAndFeedback:
